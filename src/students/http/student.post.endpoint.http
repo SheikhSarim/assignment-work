@@ -1,0 +1,12 @@
+POST http://localhost:8080/students
+Content-Type: application/json
+
+{
+  "name": "David Lee",
+  "email": "davidlee@example.com",
+  "studentProfile": {
+    "age": 20,
+    "address": "654 Maple Street, Rivertown",
+    "phone": "+1312345678"
+  }
+}
