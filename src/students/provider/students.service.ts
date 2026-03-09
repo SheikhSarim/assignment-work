@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateStudentDto } from '../dto/create-student.dto';
 import { Student } from '../entities/student.entity';
 import { Repository } from 'typeorm';
@@ -25,7 +25,20 @@ export class StudentsService {
     return this.studentRepo.save(student);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} student`;
+  async remove(id: number) {
+    const student = await this.studentRepo.findOne({
+      where: { id },
+      relations: ['studentProfile'],
+    });
+
+    if (!student) throw new NotFoundException(`Student ${id} not found`);
+
+    await this.studentRepo.remove(student);
+
+    if (student.studentProfile) {
+      await this.profileRepo.remove(student.studentProfile);
+    }
+
+    return { deleted: true, id };
   }
 }
