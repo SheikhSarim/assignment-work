@@ -1,97 +1,221 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Student – StudentProfile One-to-One Relationship (NestJS + PostgreSQL + TypeORM)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Project Overview
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+This assignment demonstrates a **One-to-One relationship** using **NestJS**, **PostgreSQL**, and **TypeORM**.
 
-## Description
+The system manages **Students** and their **Student Profiles**.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Each **Student** has exactly **one StudentProfile**, and each **StudentProfile** belongs to exactly **one Student**.
 
-## Project setup
+The application only implements two operations:
 
-```bash
-$ npm install
+* **Create Student with Profile**
+* **Delete Student with Profile**
+
+The deletion process follows a safe database practice where **actual data (StudentProfile)** is deleted before **reference data (Student)** to avoid foreign key constraint errors.
+
+---
+
+# Technologies Used
+
+* **NestJS** – Backend framework
+* **PostgreSQL** – Relational Database
+* **TypeORM** – ORM for database operations
+* **REST API** – HTTP endpoints for interaction
+
+---
+
+# Folder Structure
+
+```
+src
+ ┣ student-profiles
+ ┃ ┣ dto
+ ┃ ┃ ┗ create-student-profile.dto.ts
+ ┃ ┣ entities
+ ┃ ┃ ┗ student-profile.entity.ts
+ ┃ ┣ http
+ ┃ ┣ provider
+ ┃ ┃ ┗ student-profiles.service.ts
+ ┃ ┣ student-profiles.controller.ts
+ ┃ ┗ student-profiles.module.ts
+ ┣ students
+ ┃ ┣ dto
+ ┃ ┃ ┗ create-student.dto.ts
+ ┃ ┣ entities
+ ┃ ┃ ┗ student.entity.ts
+ ┃ ┣ http
+ ┃ ┃ ┣ student.delete.endpoint.http
+ ┃ ┃ ┗ student.post.endpoint.http
+ ┃ ┣ provider
+ ┃ ┃ ┗ students.service.ts
+ ┃ ┣ students.controller.ts
+ ┃ ┗ students.module.ts
+ ┣ app.controller.spec.ts
+ ┣ app.controller.ts
+ ┣ app.module.ts
+ ┣ app.service.ts
+ ┗ main.ts
 ```
 
-## Compile and run the project
+This structure follows a **feature-based modular architecture** recommended for NestJS projects.
 
-```bash
-# development
-$ npm run start
+---
 
-# watch mode
-$ npm run start:dev
+# Database Design
 
-# production mode
-$ npm run start:prod
+Two tables are created:
+
+## Students Table
+
+| Column           | Type    | Description                            |
+| ---------------- | ------- | -------------------------------------- |
+| id               | integer | Primary Key                            |
+| name             | varchar | Student name                           |
+| email            | varchar | Student email                          |
+| studentProfileId | integer | Foreign key referencing StudentProfile |
+
+---
+
+## StudentProfiles Table
+
+| Column  | Type    | Description          |
+| ------- | ------- | -------------------- |
+| id      | integer | Primary Key          |
+| age     | integer | Student age          |
+| address | varchar | Student address      |
+| phone   | varchar | Student phone number |
+
+---
+
+# Entity Relationship Diagram (ERD)
+
+![Student ERD](./ERD-diagram/ERD%20Diagram.png)
+
+Relationship Type:
+
+```
+Student 1 ───── 1 StudentProfile
 ```
 
-## Run tests
+---
 
-```bash
-# unit tests
-$ npm run test
+# One-to-One Implementation
 
-# e2e tests
-$ npm run test:e2e
+The relationship is implemented using TypeORM decorators:
 
-# test coverage
-$ npm run test:cov
+```ts
+    @OneToOne(() => StudentProfile, {
+        cascade: true,
+        eager: true,
+        nullable: true,
+    })
+    @JoinColumn()
+    studentProfile!: StudentProfile;
 ```
 
-## Deployment
+Explanation:
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+* **@OneToOne** defines the relationship type.
+* **@JoinColumn** creates the **foreign key in the Student table**.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+---
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# Create Operation Flow
+
+When creating a student, the application performs the following steps:
+
+```
+API Request
+     ↓
+StudentsController
+     ↓
+StudentsService
+     ↓
+Create StudentProfile
+     ↓
+Save Profile to Database
+     ↓
+Create Student with profileId
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+---
 
-## Resources
+# Delete Operation Flow
 
-Check out a few resources that may come in handy when working with NestJS:
+To maintain data integrity and avoid foreign key errors:
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```
+Find Student by Id
+     ↓
+Delete StudentProfile
+     ↓
+Delete Student
+```
 
-## Support
+This ensures that **dependent data is removed first** before removing the parent record.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+---
 
-## Stay in touch
+# Example API Request
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+ Create Student
+```
+POST /students
+```
+
+## Request Body
+
+```json
+{
+  "name": "Jane Smith",
+  "email": "janesmith@example.com",
+  "studentProfile": {
+    "age": 22,
+    "address": "456 Elm Avenue, Townsville",
+    "phone": "0987654321"
+  }
+}
+```
+
+---
+
+# Expected Database Result
+
+### Students Table
+
+| id | name       | email                                                 | profileId |
+| -- | ---------- | ----------------------------------------------------- | --------- |
+| 1  | Jane Smith | [janesmith@example.com](mailto:janesmith@example.com) | 1         |
+
+---
+
+### StudentProfiles Table
+
+| id | age | address                    | phone      |
+| -- | --- | -------------------------- | ---------- |
+| 1  | 22  | 456 Elm Avenue, Townsville | 0987654321 |
+
+---
+
+# Key Concepts Demonstrated
+
+* NestJS modular architecture
+* TypeORM entity relationships
+* One-to-One database relationships
+* Safe deletion order
+* REST API endpoint design
+
+---
+
+# Conclusion
+
+This project demonstrates how a **One-to-One relationship** can be implemented in a NestJS application using TypeORM and PostgreSQL.
+
+The system ensures proper database integrity by creating and deleting related records in the correct order.
+
+---
 
 ## License
 
